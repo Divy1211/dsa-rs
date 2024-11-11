@@ -1,5 +1,5 @@
 pub mod centre;
-mod root;
+pub mod root;
 
 use std::collections::{HashMap, HashSet};
 use std::hash::Hash;

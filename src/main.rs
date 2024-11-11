@@ -1,6 +1,7 @@
 use crate::ds::graph::Graph;
 
 pub mod ds;
+mod opt_block;
 
 fn main() {
     let g = Graph::from_edge_list(vec![
@@ -13,5 +14,5 @@ fn main() {
     
     let root = g.root();
     
-    eprintln!("{:?}", root)
+    println!("{:?}", root);
 }
