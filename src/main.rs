@@ -11,8 +11,13 @@ fn main() {
         (3, 5),
         (3, 6),
     ], true);
+    let f = Graph::from_edge_list(vec![
+        (1, 2),
+        (2, 4),
+        (2, 5),
+        (4, 6),
+        (4, 7),
+    ], true);
     
-    let root = g.root();
-    
-    println!("{:?}", root);
+    println!("{:?}", g.is_isomorphic_to(&f));
 }

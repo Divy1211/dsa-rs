@@ -1,46 +1,46 @@
 pub mod centre;
 pub mod root;
+mod isomorphic;
+mod encode;
 
 use std::collections::{HashMap, HashSet};
 use std::hash::Hash;
 use std::rc::{Rc, Weak};
 use std::cell::RefCell;
+use std::marker::PhantomData;
+
+trait GraphState {}
+
+pub struct Unrooted;
+pub struct Rooted;
+
+impl GraphState for Unrooted {}
+impl GraphState for Rooted {}
+
 #[derive(Debug)]
-pub struct Graph<T: Eq + Hash + Copy> {
+pub struct Graph<T: Eq + Hash + Copy, S: GraphState> {
     pub nodes: HashMap<T, Rc<Node<T>>>,
+    root: Option<Rc<Node<T>>>,
+    _state: PhantomData<S>
 }
 
-impl<T: Eq + Hash + Copy> Graph<T> {
+impl<T: Eq + Hash + Copy> Graph<T, Unrooted> {
     pub fn with_capacity(capacity: usize) -> Self {
         Graph {
             nodes: HashMap::with_capacity(capacity),
+            root: None,
+            _state: PhantomData,
         }
     }
-    
+
     pub fn new() -> Self {
         Graph {
             nodes: HashMap::new(),
+            root: None,
+            _state: PhantomData,
         }
     }
-    
-    pub fn add_edge(&mut self, from: T, to: T, undirected: bool) {
-        let from = self.nodes
-            .entry(from)
-            .or_insert_with(|| Rc::new(Node::new(from)))
-            .clone();
-        let to = self.nodes
-            .entry(to)
-            .or_insert_with(|| Rc::new(Node::new(to)))
-            .clone();
 
-        if undirected {
-            from.edges.borrow_mut().push(Edge::new(to.clone()));
-            to.edges.borrow_mut().push(Edge::new(from));
-        } else {
-            from.edges.borrow_mut().push(Edge::new(to));
-        }
-    }
-    
     pub fn from_edge_list(edge_ls: Vec<(T, T)>, undirected: bool) -> Self {
         edge_ls.into_iter().fold(
             Graph::new(),
@@ -61,6 +61,40 @@ impl<T: Eq + Hash + Copy> Graph<T> {
                 graph
             }
         )
+    }
+}
+
+impl<T: Eq + Hash + Copy, S: GraphState> Graph<T, S> {
+    fn root_at(self, root: T) -> Graph<T, Rooted> {
+        Graph {
+            root: self.nodes.get(&root).cloned(),
+            nodes: self.nodes,
+            _state: PhantomData,
+        }
+    }
+    
+    pub fn add_edge(&mut self, from: T, to: T, undirected: bool) {
+        let from = self.nodes
+            .entry(from)
+            .or_insert_with(|| Rc::new(Node::new(from)))
+            .clone();
+        let to = self.nodes
+            .entry(to)
+            .or_insert_with(|| Rc::new(Node::new(to)))
+            .clone();
+
+        if undirected {
+            from.edges.borrow_mut().push(Edge::new(to.clone()));
+            to.edges.borrow_mut().push(Edge::new(from));
+        } else {
+            from.edges.borrow_mut().push(Edge::new(to));
+        }
+    }
+}
+
+impl<T: Eq + Hash + Copy> Graph<T, Rooted> {
+    pub fn root(&self) -> Rc<Node<T>> {
+        self.root.clone().expect("infallible")
     }
 }
 

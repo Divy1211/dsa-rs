@@ -1,10 +1,10 @@
 use std::collections::HashMap;
 use std::hash::Hash;
 use std::rc::Rc;
-use crate::ds::graph::{Graph, Node};
+use crate::ds::graph::{Graph, Node, Unrooted};
 
 
-impl<T: Eq + Hash + Copy> Graph<T> {
+impl<T: Eq + Hash + Copy> Graph<T, Unrooted> {
     pub fn in_degrees(&self) -> HashMap<T, usize> {
         let mut in_degrees = HashMap::with_capacity(self.nodes.len());
         
